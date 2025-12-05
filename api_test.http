@@ -1,0 +1,95 @@
+### Переменные
+@baseUrl = http://127.0.0.1:8000
+
+### 1. Регистрация
+POST {{baseUrl}}/register
+Content-Type: application/json
+
+{
+  "email": "admin_test_7@test.com",
+  "password": "123456"
+}
+
+### 2. Логин
+POST {{baseUrl}}/login
+Content-Type: application/json
+
+{
+  "email": "admin@test.com",
+  "password": "123456"
+}
+
+### 3. Создать поставщика
+POST {{baseUrl}}/supplier
+Content-Type: application/json
+
+{
+  "name": "Tech_1 Supplier Inc",
+  "contact": "info@tech_1supplier.com"
+}
+
+### 4. Получить всех поставщиков
+GET {{baseUrl}}/supplier
+
+### 5. Обновить поставщика
+PUT {{baseUrl}}/supplier/2
+Content-Type: application/json
+
+{
+  "name": "Updated Supplier_1",
+  "contact": "new_1@email.com"
+}
+
+### 6. Создать категорию
+POST {{baseUrl}}/category
+Content-Type: application/json
+
+{
+  "name": "Test"
+}
+
+### 7. Получить все категории
+GET {{baseUrl}}/category
+
+### 8. Создать товар
+POST {{baseUrl}}/product
+Content-Type: application/json
+
+{
+  "name": "Laptop",
+  "description": "Gaming laptop",
+  "price": 75000,
+  "supplier_id": 1
+}
+
+### 9. Получить все товары
+GET {{baseUrl}}/product
+
+### 10. Получить товар по ID
+GET {{baseUrl}}/product/5
+
+### 11. Обновить товар
+PUT {{baseUrl}}/product/5
+Content-Type: application/json
+
+{
+  "name": "Updated Laptop",
+  "description": "New description",
+  "price": 85000,
+  "supplier_id": 1
+}
+
+### 12. Удалить товар
+DELETE {{baseUrl}}/product/5
+
+### 13. Товары категории
+GET {{baseUrl}}/category/3/product
+
+### 14. Товары поставщика
+GET {{baseUrl}}/supplier/8/product
+
+### 15. Удалить поставщика
+DELETE {{baseUrl}}/supplier/14
+
+### 16. Удалить категорию
+DELETE {{baseUrl}}/category/3
