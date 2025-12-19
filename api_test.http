@@ -6,7 +6,7 @@ POST {{baseUrl}}/register
 Content-Type: application/json
 
 {
-  "email": "admin_test_7@test.com",
+  "email": "admin_test_8@test.com",
   "password": "123456"
 }
 
@@ -45,7 +45,7 @@ POST {{baseUrl}}/category
 Content-Type: application/json
 
 {
-  "name": "Test"
+  "name": "Test_1"
 }
 
 ### 7. Получить все категории
@@ -66,30 +66,30 @@ Content-Type: application/json
 GET {{baseUrl}}/product
 
 ### 10. Получить товар по ID
-GET {{baseUrl}}/product/5
+GET {{baseUrl}}/product/6
 
 ### 11. Обновить товар
-PUT {{baseUrl}}/product/5
+PUT {{baseUrl}}/product/10
 Content-Type: application/json
 
 {
   "name": "Updated Laptop",
   "description": "New description",
-  "price": 85000,
+  "price": 105000,
   "supplier_id": 1
 }
 
 ### 12. Удалить товар
-DELETE {{baseUrl}}/product/5
+DELETE {{baseUrl}}/product/6
 
 ### 13. Товары категории
-GET {{baseUrl}}/category/3/product
+GET {{baseUrl}}/category/9/product
 
 ### 14. Товары поставщика
-GET {{baseUrl}}/supplier/8/product
+GET {{baseUrl}}/supplier/1/product
 
 ### 15. Удалить поставщика
-DELETE {{baseUrl}}/supplier/14
+DELETE {{baseUrl}}/supplier/16
 
 ### 16. Удалить категорию
-DELETE {{baseUrl}}/category/3
+DELETE {{baseUrl}}/category/9
