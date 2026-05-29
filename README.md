@@ -1,64 +1,121 @@
-📦 Система управления складом на Go
-🚀 Описание:
-Этот проект представляет собой REST API для управления складом, реализованный на языке Go с использованием архитектурного подхода Clean Architecture.
-Проект позволяет управлять товарами, поставщиками, категориями и пользователями с поддержкой авторизации через JWT.
+# 📦 WareHouse — Система управления складом
 
-🛠️ Технологии
-Язык: Go (Golang)
-Веб-фреймворк: Fiber
-ORM: GORM
-База данных: PostgreSQL
-Авторизация: JWT
-Архитектура: Clean Architecture
+REST API для управления складом на Go с веб-интерфейсом. Clean Architecture, JWT-авторизация, PostgreSQL.
 
-📁 Структура проекта
+## Стек
+
+- **Go 1.22** + **Fiber v2** — веб-фреймворк
+- **GORM** — ORM
+- **PostgreSQL** — база данных
+- **JWT** — авторизация
+- **Docker** — запуск БД
+- **Vanilla HTML/JS** — фронтенд
+
+## Структура проекта
+
+```
 warehouse-app/
-├── adapters/          # Адаптеры (HTTP, GORM)
-├── auth/              # Авторизация (адаптеры, сервисы)
-├── core/              # Бизнес-логика (сервисы, репозитории)
-├── database/          # Модели и подключение к БД
-├── main.go            # Точка входа
-├── go.mod
-└── README.md
+├── adapters/           # HTTP-хендлеры и GORM-репозитории (продукты, категории, поставщики)
+├── auth/
+│   ├── authAdapter/    # HTTP-хендлеры и GORM-репозиторий пользователей
+│   └── authCore/       # Интерфейсы и сервис авторизации
+├── core/               # Бизнес-логика: сервис и репозиторий продуктов
+├── database/           # Модели (Product, Supplier, Category, User)
+├── frontend/           # Веб-интерфейс (index.html)
+├── docker-compose.yml
+├── .env.example
+└── main.go
+```
 
-🧩 Возможности
-✅ Регистрация и авторизация пользователей (JWT)
-✅ Управление товарами: создание, обновление, удаление, получение
-✅ Управление поставщиками и категориями
-✅ Фильтрация товаров по поставщикам и категориям
-✅ Защита маршрутов с помощью JWT
+## Запуск
 
-🛠️ Запуск проекта
-1. Установите зависимости:
-go mod tidy
-2. Настройте .env файл:
+### 1. Клонировать репозиторий
+
+```bash
+git clone https://github.com/ryzzz0n/ware-house.git
+cd ware-house
+```
+
+### 2. Настроить окружение
+
+```bash
+cp .env.example .env
+```
+
+Заполнить `.env`:
+
+```env
 DB_HOST=localhost
 DB_PORT=5432
 DB_USER=postgres
 DB_PASSWORD=yourpassword
 DB_NAME=warehouse
-JWT_SECRETKEY=your_secret_key
-3. Запустите приложение:
+JWT_SECRETKEY=your-secret-key-minimum-32-chars
+```
+
+### 3. Запустить PostgreSQL
+
+```bash
+docker-compose up -d
+```
+
+### 4. Запустить сервер
+
+```bash
+go mod tidy
 go run main.go
-4. API будет доступен по адресу: http://127.0.0.1:8000 
+```
 
-🌐 Маршруты
-| Метод | Путь                     | Описание                         |
-|-------|--------------------------|----------------------------------|
-| POST  | `/register`              | Регистрация пользователя         |
-| POST  | `/login`                 | Вход пользователя                |
-| POST  | `/supplier`              | Создать поставщика (требует JWT) |
-| GET   | `/supplier`              | Получить всех поставщиков        |
-| POST  | `/category`              | Создать категорию (требует JWT)  |
-| GET   | `/category`              | Получить все категории           |
-| POST  | `/product`               | Создать товар (требует JWT)      |
-| GET   | `/product`               | Получить все товары              |
-| GET   | `/product/{id}`          | Получить товар по ID             |
-| GET   | `/category/{id}/product` | Получить товары по категории     |
-| GET   | `/supplier/{id}/product` | Получить товары по поставщику    |
-| PUT   | `/supplier/{id}`         | Обновить поставщика              |
-| PUT   | `/product/{id}`          | Обновить товар                   |
-| DELETE| `/product/{id}`          | Удалить товар                    |
+Сервер запустится на `http://localhost:8000`
 
-📝 Автор
-Разработано студентом ryzzz0n (Максим Булюкин) в рамках учебного проекта по Go.
+### 5. Открыть фронтенд
+
+Открыть `frontend/index.html` в браузере.
+
+## API
+
+| Метод  | Путь                      | Описание                        | Auth |
+|--------|---------------------------|---------------------------------|------|
+| POST   | `/register`               | Регистрация пользователя        | —    |
+| POST   | `/login`                  | Вход, возвращает JWT            | —    |
+| POST   | `/supplier`               | Создать поставщика              | ✓    |
+| GET    | `/supplier`               | Список поставщиков              | ✓    |
+| PUT    | `/supplier/:id`           | Обновить поставщика             | ✓    |
+| DELETE | `/supplier/:id`           | Удалить поставщика              | ✓    |
+| POST   | `/category`               | Создать категорию               | ✓    |
+| GET    | `/category`               | Список категорий                | ✓    |
+| DELETE | `/category/:id`           | Удалить категорию               | ✓    |
+| POST   | `/product`                | Создать товар                   | ✓    |
+| GET    | `/product`                | Список товаров                  | ✓    |
+| GET    | `/product/:id`            | Товар по ID                     | ✓    |
+| PUT    | `/product/:id`            | Обновить товар                  | ✓    |
+| DELETE | `/product/:id`            | Удалить товар                   | ✓    |
+| GET    | `/category/:id/product`   | Товары по категории             | ✓    |
+| GET    | `/supplier/:id/product`   | Товары по поставщику            | ✓    |
+
+Защищённые маршруты принимают токен двумя способами:
+
+```
+Authorization: Bearer <token>
+```
+или cookie `jwt`.
+
+## Авторизация
+
+```bash
+# Регистрация
+curl -X POST http://localhost:8000/register \
+  -H "Content-Type: application/json" \
+  -d '{"email":"admin@test.com","password":"123456"}'
+
+# Вход
+curl -X POST http://localhost:8000/login \
+  -H "Content-Type: application/json" \
+  -d '{"email":"admin@test.com","password":"123456"}'
+```
+
+В ответе придёт `token` — передавать в заголовке `Authorization: Bearer <token>`.
+
+## Автор
+
+Максим Булюкин — учебный проект по Go
