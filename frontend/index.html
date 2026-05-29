@@ -1,0 +1,892 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>WareHouse — Система управления складом</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+<script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<style>
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+  :root{
+    --bg:#0a0a0b;
+    --surface:#111113;
+    --surface2:#18181c;
+    --border:#2a2a32;
+    --border2:#3a3a45;
+    --accent:#c8f04a;
+    --accent-dim:#8aaa2a;
+    --text:#f0efe8;
+    --text2:#888890;
+    --text3:#555560;
+    --red:#f04a4a;
+    --green:#4af09a;
+    --amber:#f0c44a;
+    --blue:#4a9ef0;
+    --radius:10px;
+    --radius-lg:16px;
+    --font-display:'Syne',sans-serif;
+    --font-body:'DM Sans',sans-serif;
+    --font-mono:'IBM Plex Mono',monospace;
+  }
+  html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--font-body);font-size:15px;line-height:1.6;-webkit-font-smoothing:antialiased}
+  #root{height:100%;display:flex}
+
+  ::-webkit-scrollbar{width:5px;height:5px}
+  ::-webkit-scrollbar-track{background:transparent}
+  ::-webkit-scrollbar-thumb{background:var(--border2);border-radius:99px}
+
+  button{font-family:var(--font-body);cursor:pointer;border:none;outline:none}
+  input,textarea,select{font-family:var(--font-body);outline:none;border:none}
+  input::placeholder,textarea::placeholder{color:var(--text3)}
+
+  .sidebar{
+    width:220px;min-width:220px;background:var(--surface);border-right:1px solid var(--border);
+    display:flex;flex-direction:column;padding:28px 0;position:sticky;top:0;height:100vh;overflow:hidden;
+  }
+  .sidebar-logo{
+    padding:0 24px 28px;
+    border-bottom:1px solid var(--border);
+    margin-bottom:16px;
+  }
+  .logo-mark{
+    font-family:var(--font-display);font-size:22px;font-weight:800;
+    color:var(--accent);letter-spacing:-0.5px;line-height:1;
+  }
+  .logo-sub{font-size:11px;color:var(--text3);font-family:var(--font-mono);margin-top:4px;letter-spacing:0.05em}
+  .nav-item{
+    display:flex;align-items:center;gap:10px;
+    padding:10px 20px;margin:2px 12px;
+    border-radius:var(--radius);cursor:pointer;
+    font-size:14px;color:var(--text2);
+    transition:all .15s;border:1px solid transparent;
+    font-weight:400;
+  }
+  .nav-item:hover{background:var(--surface2);color:var(--text)}
+  .nav-item.active{background:var(--accent);color:#0a0a0b;font-weight:500;border-color:var(--accent)}
+  .nav-icon{font-size:16px;flex-shrink:0}
+  .nav-section{font-size:10px;font-family:var(--font-mono);color:var(--text3);padding:16px 24px 6px;letter-spacing:0.1em;text-transform:uppercase}
+  .sidebar-footer{
+    margin-top:auto;padding:16px 24px 0;
+    border-top:1px solid var(--border);
+  }
+  .user-pill{
+    display:flex;align-items:center;gap:10px;
+    padding:10px 12px;background:var(--surface2);
+    border-radius:var(--radius);border:1px solid var(--border);
+  }
+  .user-avatar{
+    width:28px;height:28px;border-radius:50%;
+    background:var(--accent);display:flex;align-items:center;justify-content:center;
+    font-size:11px;font-weight:700;color:#0a0a0b;flex-shrink:0;font-family:var(--font-mono);
+  }
+  .user-info .user-email{font-size:12px;color:var(--text2)}
+  .user-info .user-role{font-size:10px;color:var(--text3);font-family:var(--font-mono)}
+
+  .main{flex:1;overflow-y:auto;display:flex;flex-direction:column}
+  .topbar{
+    display:flex;align-items:center;justify-content:space-between;
+    padding:20px 32px;border-bottom:1px solid var(--border);
+    background:var(--surface);position:sticky;top:0;z-index:10;
+  }
+  .page-title{font-family:var(--font-display);font-size:20px;font-weight:700;letter-spacing:-0.3px}
+  .topbar-right{display:flex;align-items:center;gap:12px}
+  .btn{
+    display:inline-flex;align-items:center;gap:6px;
+    padding:8px 16px;border-radius:var(--radius);
+    font-size:13px;font-weight:500;cursor:pointer;
+    transition:all .15s;border:1px solid transparent;
+  }
+  .btn-accent{background:var(--accent);color:#0a0a0b;border-color:var(--accent)}
+  .btn-accent:hover{background:#d9ff55;transform:translateY(-1px)}
+  .btn-ghost{background:transparent;color:var(--text2);border-color:var(--border)}
+  .btn-ghost:hover{background:var(--surface2);color:var(--text);border-color:var(--border2)}
+  .btn-danger{background:transparent;color:var(--red);border-color:rgba(240,74,74,.3)}
+  .btn-danger:hover{background:rgba(240,74,74,.1)}
+  .btn-sm{padding:5px 10px;font-size:12px}
+  .btn:disabled{opacity:0.4;cursor:not-allowed;transform:none!important}
+
+  .content{padding:28px 32px;flex:1}
+
+  .stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:28px}
+  .stat-card{
+    background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);
+    padding:20px 22px;
+  }
+  .stat-label{font-size:11px;color:var(--text3);font-family:var(--font-mono);letter-spacing:0.08em;text-transform:uppercase;margin-bottom:8px}
+  .stat-value{font-family:var(--font-display);font-size:32px;font-weight:700;line-height:1;letter-spacing:-1px}
+  .stat-accent{color:var(--accent)}
+  .stat-green{color:var(--green)}
+  .stat-amber{color:var(--amber)}
+  .stat-blue{color:var(--blue)}
+  .stat-sub{font-size:12px;color:var(--text3);margin-top:4px}
+
+  .card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);overflow:hidden}
+  .card-header{
+    display:flex;align-items:center;justify-content:space-between;
+    padding:18px 22px;border-bottom:1px solid var(--border);
+  }
+  .card-title{font-family:var(--font-display);font-size:15px;font-weight:600}
+  .card-body{padding:0}
+
+  table{width:100%;border-collapse:collapse}
+  th{
+    font-family:var(--font-mono);font-size:10px;color:var(--text3);
+    text-transform:uppercase;letter-spacing:0.08em;font-weight:500;
+    padding:10px 22px;text-align:left;border-bottom:1px solid var(--border);
+    background:var(--surface2);
+  }
+  td{padding:14px 22px;border-bottom:1px solid var(--border);font-size:14px;vertical-align:middle}
+  tr:last-child td{border-bottom:none}
+  tr:hover td{background:rgba(255,255,255,.02)}
+
+  .badge{
+    display:inline-flex;align-items:center;
+    padding:3px 8px;border-radius:6px;
+    font-size:11px;font-weight:500;font-family:var(--font-mono);
+  }
+  .badge-green{background:rgba(74,240,154,.12);color:var(--green)}
+  .badge-amber{background:rgba(240,196,74,.12);color:var(--amber)}
+  .badge-red{background:rgba(240,74,74,.12);color:var(--red)}
+  .badge-blue{background:rgba(74,158,240,.12);color:var(--blue)}
+  .badge-default{background:var(--surface2);color:var(--text2);border:1px solid var(--border)}
+
+  .search-bar{
+    display:flex;align-items:center;gap:8px;
+    background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);
+    padding:8px 14px;width:260px;
+  }
+  .search-bar input{background:transparent;color:var(--text);font-size:13px;flex:1;width:100%}
+  .search-icon{color:var(--text3);font-size:14px;flex-shrink:0}
+
+  .empty-state{
+    display:flex;flex-direction:column;align-items:center;justify-content:center;
+    padding:64px 32px;color:var(--text3);text-align:center;
+  }
+  .empty-icon{font-size:40px;margin-bottom:12px;opacity:0.4}
+  .empty-title{font-family:var(--font-display);font-size:16px;color:var(--text2);margin-bottom:6px}
+  .empty-desc{font-size:13px}
+
+  .modal-overlay{
+    position:fixed;inset:0;background:rgba(0,0,0,.7);
+    display:flex;align-items:center;justify-content:center;
+    z-index:100;backdrop-filter:blur(4px);
+    animation:fadeIn .15s ease;
+  }
+  @keyframes fadeIn{from{opacity:0}to{opacity:1}}
+  .modal{
+    background:var(--surface);border:1px solid var(--border2);border-radius:var(--radius-lg);
+    padding:28px;width:440px;max-width:95vw;max-height:90vh;overflow-y:auto;
+    animation:slideUp .2s ease;
+  }
+  @keyframes slideUp{from{transform:translateY(12px);opacity:0}to{transform:translateY(0);opacity:1}}
+  .modal-title{font-family:var(--font-display);font-size:18px;font-weight:700;margin-bottom:20px}
+  .modal-footer{display:flex;justify-content:flex-end;gap:10px;margin-top:24px}
+
+  .form-group{margin-bottom:16px}
+  label{display:block;font-size:12px;color:var(--text3);font-family:var(--font-mono);margin-bottom:6px;letter-spacing:0.05em}
+  .field{
+    width:100%;padding:10px 14px;
+    background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);
+    color:var(--text);font-size:14px;font-family:var(--font-body);
+    transition:border-color .15s;
+  }
+  .field:focus{border-color:var(--accent)}
+
+  .toast{
+    position:fixed;bottom:24px;right:24px;
+    padding:12px 18px;border-radius:var(--radius);
+    font-size:13px;font-weight:500;z-index:200;
+    animation:toastIn .2s ease;
+    display:flex;align-items:center;gap:8px;
+  }
+  @keyframes toastIn{from{transform:translateY(8px);opacity:0}to{transform:translateY(0);opacity:1}}
+  .toast-success{background:#1a2e1a;border:1px solid rgba(74,240,154,.3);color:var(--green)}
+  .toast-error{background:#2e1a1a;border:1px solid rgba(240,74,74,.3);color:var(--red)}
+
+  .auth-wrap{
+    flex:1;display:flex;align-items:center;justify-content:center;background:var(--bg);
+  }
+  .auth-card{
+    background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);
+    padding:40px;width:400px;max-width:95vw;
+  }
+  .auth-logo{font-family:var(--font-display);font-size:28px;font-weight:800;color:var(--accent);margin-bottom:4px}
+  .auth-sub{font-size:13px;color:var(--text3);margin-bottom:32px;font-family:var(--font-mono)}
+  .auth-tabs{display:flex;gap:0;margin-bottom:24px;border-bottom:1px solid var(--border)}
+  .auth-tab{
+    padding:8px 20px;font-size:14px;font-weight:500;cursor:pointer;
+    border-bottom:2px solid transparent;color:var(--text3);transition:all .15s;
+    background:transparent;margin-bottom:-1px;
+  }
+  .auth-tab.active{color:var(--accent);border-color:var(--accent)}
+
+  .price-cell{font-family:var(--font-mono);font-size:13px}
+  .id-cell{font-family:var(--font-mono);font-size:11px;color:var(--text3)}
+
+  .tag{
+    display:inline-flex;align-items:center;gap:4px;
+    padding:3px 8px;background:var(--surface2);border:1px solid var(--border);
+    border-radius:6px;font-size:11px;color:var(--text2);font-family:var(--font-mono);
+  }
+
+  .action-row{display:flex;gap:6px}
+  .icon-btn{
+    width:30px;height:30px;border-radius:7px;display:flex;align-items:center;justify-content:center;
+    background:transparent;border:1px solid transparent;color:var(--text3);cursor:pointer;
+    font-size:14px;transition:all .15s;
+  }
+  .icon-btn:hover{background:var(--surface2);border-color:var(--border);color:var(--text)}
+  .icon-btn.danger:hover{background:rgba(240,74,74,.1);border-color:rgba(240,74,74,.3);color:var(--red)}
+
+  .loading-row td{text-align:center;padding:40px;color:var(--text3);font-family:var(--font-mono);font-size:12px}
+  .dot-anim::after{content:'...';animation:dots 1.2s steps(4,end) infinite}
+  @keyframes dots{0%,20%{content:'.'}40%{content:'..'}60%,100%{content:'...'}}
+
+  .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+
+  .error-bar{
+    background:rgba(240,74,74,.08);border:1px solid rgba(240,74,74,.2);
+    border-radius:var(--radius);padding:10px 14px;
+    font-size:13px;color:var(--red);margin-bottom:16px;
+  }
+
+  .api-note{
+    background:rgba(200,240,74,.06);border:1px solid rgba(200,240,74,.15);
+    border-radius:var(--radius);padding:10px 14px;
+    font-size:12px;color:var(--accent-dim);font-family:var(--font-mono);
+    margin-bottom:20px;
+  }
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+const { useState, useEffect, useCallback, useRef } = React;
+const BASE = 'http://127.0.0.1:8000';
+
+/* ─────────── helpers ─────────── */
+function getToken(){ return localStorage.getItem('wh_token') }
+function setToken(t){ localStorage.setItem('wh_token',t) }
+function clearToken(){ localStorage.removeItem('wh_token'); localStorage.removeItem('wh_email') }
+
+async function api(path, opts={}){
+  const token = getToken();
+  const headers = { 'Content-Type':'application/json', ...(token?{Authorization:`Bearer ${token}`}:{}) };
+  const res = await fetch(BASE+path, { headers, ...opts });
+  const body = await res.json().catch(()=>({}));
+  if(!res.ok) throw new Error(body.message || body.error || `HTTP ${res.status}`);
+  return body;
+}
+
+/* ─────────── Toast ─────────── */
+let toastTimer;
+function Toast({toast,setToast}){
+  useEffect(()=>{
+    if(!toast) return;
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(()=>setToast(null),3000);
+  },[toast]);
+  if(!toast) return null;
+  return <div className={`toast toast-${toast.type}`}>{toast.type==='success'?'✓':'✗'} {toast.msg}</div>;
+}
+
+/* ─────────── Auth ─────────── */
+function Auth({onLogin}){
+  const [tab,setTab]=useState('login');
+  const [email,setEmail]=useState('');
+  const [pass,setPass]=useState('');
+  const [loading,setLoading]=useState(false);
+  const [err,setErr]=useState('');
+
+  async function submit(e){
+    e.preventDefault(); setErr(''); setLoading(true);
+    try{
+      const data = await api('/'+tab,{method:'POST',body:JSON.stringify({email,password:pass})});
+      if(tab==='login'){
+        setToken(data.token || data.access_token || data.jwt || (data.data&&data.data.token) || '');
+        localStorage.setItem('wh_email', email);
+        onLogin();
+      } else {
+        setTab('login'); setErr('');
+      }
+    } catch(e){ setErr(e.message) }
+    finally{ setLoading(false) }
+  }
+
+  return (
+    <div className="auth-wrap">
+      <div className="auth-card">
+        <div className="auth-logo">WARE·HOUSE</div>
+        <div className="auth-sub">// система управления складом v1.0</div>
+        <div className="auth-tabs">
+          <button className={`auth-tab${tab==='login'?' active':''}`} onClick={()=>{setTab('login');setErr('')}}>Вход</button>
+          <button className={`auth-tab${tab==='register'?' active':''}`} onClick={()=>{setTab('register');setErr('')}}>Регистрация</button>
+        </div>
+        {err && <div className="error-bar">{err}</div>}
+        <form onSubmit={submit}>
+          <div className="form-group">
+            <label>EMAIL</label>
+            <input className="field" type="email" value={email} onChange={e=>setEmail(e.target.value)} placeholder="admin@test.com" required/>
+          </div>
+          <div className="form-group">
+            <label>ПАРОЛЬ</label>
+            <input className="field" type="password" value={pass} onChange={e=>setPass(e.target.value)} placeholder="••••••" required/>
+          </div>
+          <button type="submit" className="btn btn-accent" style={{width:'100%',justifyContent:'center',padding:'11px'}} disabled={loading}>
+            {loading ? 'Подождите...' : tab==='login'?'Войти →':'Создать аккаунт →'}
+          </button>
+        </form>
+      </div>
+    </div>
+  );
+}
+
+/* ─────────── Modals ─────────── */
+function Modal({title, onClose, children}){
+  useEffect(()=>{
+    function handler(e){ if(e.key==='Escape') onClose(); }
+    document.addEventListener('keydown',handler);
+    return()=>document.removeEventListener('keydown',handler);
+  },[]);
+  return (
+    <div className="modal-overlay" onClick={e=>e.target===e.currentTarget&&onClose()}>
+      <div className="modal">
+        <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'20px'}}>
+          <div className="modal-title">{title}</div>
+          <button className="icon-btn" onClick={onClose}>✕</button>
+        </div>
+        {children}
+      </div>
+    </div>
+  );
+}
+
+function ProductModal({product, suppliers, categories, onSave, onClose}){
+  const [form,setForm]=useState(product||{name:'',description:'',price:'',stock:0,supplier_id:'',category_id:''});
+  const [loading,setLoading]=useState(false);
+  const [err,setErr]=useState('');
+
+  function set(k,v){ setForm(f=>({...f,[k]:v})) }
+
+  async function submit(e){
+    e.preventDefault(); setErr(''); setLoading(true);
+    try{
+      const payload = {...form, price:parseFloat(form.price)||0, stock:parseInt(form.stock)||0,
+        supplier_id:parseInt(form.supplier_id)||undefined, category_id:parseInt(form.category_id)||undefined};
+      if(product?.id){
+        await api(`/product/${product.id}`,{method:'PUT',body:JSON.stringify(payload)});
+      } else {
+        await api('/product',{method:'POST',body:JSON.stringify(payload)});
+      }
+      onSave();
+    } catch(e){ setErr(e.message) }
+    finally{ setLoading(false) }
+  }
+
+  return (
+    <Modal title={product?.id ? 'Редактировать товар' : 'Новый товар'} onClose={onClose}>
+      {err && <div className="error-bar">{err}</div>}
+      <form onSubmit={submit}>
+        <div className="form-group">
+          <label>НАЗВАНИЕ</label>
+          <input className="field" value={form.name} onChange={e=>set('name',e.target.value)} placeholder="Ноутбук игровой" required/>
+        </div>
+        <div className="form-group">
+          <label>ОПИСАНИЕ</label>
+          <textarea className="field" value={form.description} onChange={e=>set('description',e.target.value)} placeholder="Краткое описание..." rows={2} style={{resize:'vertical'}}/>
+        </div>
+        <div className="grid-2">
+          <div className="form-group">
+            <label>ЦЕНА (₽)</label>
+            <input className="field" type="number" step="0.01" value={form.price} onChange={e=>set('price',e.target.value)} placeholder="75000" required/>
+          </div>
+          <div className="form-group">
+            <label>КОЛ-ВО</label>
+            <input className="field" type="number" value={form.stock} onChange={e=>set('stock',e.target.value)} placeholder="10"/>
+          </div>
+        </div>
+        <div className="grid-2">
+          <div className="form-group">
+            <label>ПОСТАВЩИК</label>
+            <select className="field" value={form.supplier_id||''} onChange={e=>set('supplier_id',e.target.value)}>
+              <option value="">— выбрать —</option>
+              {suppliers.map(s=><option key={s.id} value={s.id}>{s.name}</option>)}
+            </select>
+          </div>
+          <div className="form-group">
+            <label>КАТЕГОРИЯ</label>
+            <select className="field" value={form.category_id||''} onChange={e=>set('category_id',e.target.value)}>
+              <option value="">— выбрать —</option>
+              {categories.map(c=><option key={c.id} value={c.id}>{c.name}</option>)}
+            </select>
+          </div>
+        </div>
+        <div className="modal-footer">
+          <button type="button" className="btn btn-ghost" onClick={onClose}>Отмена</button>
+          <button type="submit" className="btn btn-accent" disabled={loading}>{loading?'Сохранение...':'Сохранить'}</button>
+        </div>
+      </form>
+    </Modal>
+  );
+}
+
+function SupplierModal({supplier, onSave, onClose}){
+  const [form,setForm]=useState(supplier||{name:'',contact:''});
+  const [loading,setLoading]=useState(false);
+  const [err,setErr]=useState('');
+
+  async function submit(e){
+    e.preventDefault(); setErr(''); setLoading(true);
+    try{
+      if(supplier?.id){
+        await api(`/supplier/${supplier.id}`,{method:'PUT',body:JSON.stringify(form)});
+      } else {
+        await api('/supplier',{method:'POST',body:JSON.stringify(form)});
+      }
+      onSave();
+    } catch(e){ setErr(e.message) }
+    finally{ setLoading(false) }
+  }
+
+  return (
+    <Modal title={supplier?.id ? 'Редактировать поставщика' : 'Новый поставщик'} onClose={onClose}>
+      {err && <div className="error-bar">{err}</div>}
+      <form onSubmit={submit}>
+        <div className="form-group">
+          <label>НАЗВАНИЕ</label>
+          <input className="field" value={form.name} onChange={e=>setForm(f=>({...f,name:e.target.value}))} placeholder="Tech Supplier Inc" required/>
+        </div>
+        <div className="form-group">
+          <label>КОНТАКТ</label>
+          <input className="field" value={form.contact} onChange={e=>setForm(f=>({...f,contact:e.target.value}))} placeholder="info@supplier.com"/>
+        </div>
+        <div className="modal-footer">
+          <button type="button" className="btn btn-ghost" onClick={onClose}>Отмена</button>
+          <button type="submit" className="btn btn-accent" disabled={loading}>{loading?'Сохранение...':'Сохранить'}</button>
+        </div>
+      </form>
+    </Modal>
+  );
+}
+
+function CategoryModal({category, onSave, onClose}){
+  const [name,setName]=useState(category?.name||'');
+  const [loading,setLoading]=useState(false);
+  const [err,setErr]=useState('');
+
+  async function submit(e){
+    e.preventDefault(); setErr(''); setLoading(true);
+    try{
+      if(category?.id){
+        await api(`/category/${category.id}`,{method:'PUT',body:JSON.stringify({name})});
+      } else {
+        await api('/category',{method:'POST',body:JSON.stringify({name})});
+      }
+      onSave();
+    } catch(e){ setErr(e.message) }
+    finally{ setLoading(false) }
+  }
+
+  return (
+    <Modal title={category?.id ? 'Редактировать категорию' : 'Новая категория'} onClose={onClose}>
+      {err && <div className="error-bar">{err}</div>}
+      <form onSubmit={submit}>
+        <div className="form-group">
+          <label>НАЗВАНИЕ</label>
+          <input className="field" value={name} onChange={e=>setName(e.target.value)} placeholder="Электроника" required/>
+        </div>
+        <div className="modal-footer">
+          <button type="button" className="btn btn-ghost" onClick={onClose}>Отмена</button>
+          <button type="submit" className="btn btn-accent" disabled={loading}>{loading?'Сохранение...':'Сохранить'}</button>
+        </div>
+      </form>
+    </Modal>
+  );
+}
+
+/* ─────────── Products page ─────────── */
+function Products({toast}){
+  const [products,setProducts]=useState([]);
+  const [suppliers,setSuppliers]=useState([]);
+  const [categories,setCategories]=useState([]);
+  const [loading,setLoading]=useState(true);
+  const [search,setSearch]=useState('');
+  const [modal,setModal]=useState(null);
+
+  const load = useCallback(async()=>{
+    setLoading(true);
+    try{
+      const [p,s,c] = await Promise.all([api('/product'),api('/supplier'),api('/category')]);
+      setProducts(Array.isArray(p)?p:p.data||[]);
+      setSuppliers(Array.isArray(s)?s:s.data||[]);
+      setCategories(Array.isArray(c)?c:c.data||[]);
+    } catch(e){ toast({type:'error',msg:e.message}) }
+    finally{ setLoading(false) }
+  },[]);
+
+  useEffect(()=>{ load() },[]);
+
+  async function del(id){
+    if(!confirm('Удалить товар?')) return;
+    try{ await api(`/product/${id}`,{method:'DELETE'}); toast({type:'success',msg:'Товар удалён'}); load(); }
+    catch(e){ toast({type:'error',msg:e.message}) }
+  }
+
+  function supName(id){ const s=suppliers.find(s=>s.id===id); return s?.name||'—' }
+  function catName(id){ const c=categories.find(c=>c.id===id); return c?.name||'—' }
+
+  const filtered = products.filter(p=>
+    !search || p.name?.toLowerCase().includes(search.toLowerCase()) ||
+    p.description?.toLowerCase().includes(search.toLowerCase())
+  );
+
+  const totalValue = products.reduce((a,p)=>a+(parseFloat(p.price)||0)*(parseInt(p.stock)||0),0);
+
+  return (
+    <div className="content">
+      <div className="stats-grid">
+        <div className="stat-card">
+          <div className="stat-label">Всего товаров</div>
+          <div className="stat-value stat-accent">{products.length}</div>
+          <div className="stat-sub">позиций в системе</div>
+        </div>
+        <div className="stat-card">
+          <div className="stat-label">Поставщики</div>
+          <div className="stat-value stat-blue">{suppliers.length}</div>
+          <div className="stat-sub">активных</div>
+        </div>
+        <div className="stat-card">
+          <div className="stat-label">Категории</div>
+          <div className="stat-value stat-green">{categories.length}</div>
+          <div className="stat-sub">групп товаров</div>
+        </div>
+        <div className="stat-card">
+          <div className="stat-label">Стоимость склада</div>
+          <div className="stat-value stat-amber" style={{fontSize:'22px'}}>
+            {totalValue > 0 ? totalValue.toLocaleString('ru-RU')+'₽' : '—'}
+          </div>
+          <div className="stat-sub">суммарная</div>
+        </div>
+      </div>
+
+      <div className="card">
+        <div className="card-header">
+          <div className="card-title">Товары</div>
+          <div style={{display:'flex',gap:10,alignItems:'center'}}>
+            <div className="search-bar">
+              <span className="search-icon">⌕</span>
+              <input value={search} onChange={e=>setSearch(e.target.value)} placeholder="Поиск..."/>
+            </div>
+            <button className="btn btn-accent" onClick={()=>setModal({type:'product'})}>+ Добавить</button>
+          </div>
+        </div>
+        <div className="card-body">
+          <table>
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Название</th>
+                <th>Описание</th>
+                <th>Цена</th>
+                <th>Кол-во</th>
+                <th>Поставщик</th>
+                <th>Категория</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody>
+              {loading && <tr className="loading-row"><td colSpan="8"><span className="dot-anim">Загрузка</span></td></tr>}
+              {!loading && filtered.length===0 && (
+                <tr><td colSpan="8">
+                  <div className="empty-state">
+                    <div className="empty-icon">📦</div>
+                    <div className="empty-title">{search?'Ничего не найдено':'Товары не добавлены'}</div>
+                    <div className="empty-desc">{search?'Попробуйте изменить запрос':'Нажмите «+ Добавить» чтобы начать'}</div>
+                  </div>
+                </td></tr>
+              )}
+              {!loading && filtered.map(p=>(
+                <tr key={p.id}>
+                  <td><span className="id-cell">#{p.id}</span></td>
+                  <td><strong style={{fontSize:14}}>{p.name}</strong></td>
+                  <td style={{color:'var(--text2)',maxWidth:200,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{p.description||'—'}</td>
+                  <td><span className="price-cell">{p.price!=null?Number(p.price).toLocaleString('ru-RU')+'₽':'—'}</span></td>
+                  <td>
+                    {p.stock != null
+                      ? <span className={`badge ${p.stock>10?'badge-green':p.stock>0?'badge-amber':'badge-red'}`}>{p.stock}</span>
+                      : <span className="badge badge-default">—</span>}
+                  </td>
+                  <td><span className="tag">{supName(p.supplier_id)}</span></td>
+                  <td><span className="tag">{catName(p.category_id)}</span></td>
+                  <td>
+                    <div className="action-row">
+                      <button className="icon-btn" title="Редактировать" onClick={()=>setModal({type:'product',data:p})}>✎</button>
+                      <button className="icon-btn danger" title="Удалить" onClick={()=>del(p.id)}>✕</button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      {modal?.type==='product' && (
+        <ProductModal
+          product={modal.data}
+          suppliers={suppliers}
+          categories={categories}
+          onSave={()=>{ setModal(null); load(); toast({type:'success',msg:'Сохранено'}) }}
+          onClose={()=>setModal(null)}
+        />
+      )}
+    </div>
+  );
+}
+
+/* ─────────── Suppliers page ─────────── */
+function Suppliers({toast}){
+  const [suppliers,setSuppliers]=useState([]);
+  const [loading,setLoading]=useState(true);
+  const [modal,setModal]=useState(null);
+  const [search,setSearch]=useState('');
+
+  const load = useCallback(async()=>{
+    setLoading(true);
+    try{ const d=await api('/supplier'); setSuppliers(Array.isArray(d)?d:d.data||[]); }
+    catch(e){ toast({type:'error',msg:e.message}) }
+    finally{ setLoading(false) }
+  },[]);
+
+  useEffect(()=>{ load() },[]);
+
+  async function del(id){
+    if(!confirm('Удалить поставщика? Это может затронуть связанные товары.')) return;
+    try{ await api(`/supplier/${id}`,{method:'DELETE'}); toast({type:'success',msg:'Поставщик удалён'}); load(); }
+    catch(e){ toast({type:'error',msg:e.message}) }
+  }
+
+  const filtered = suppliers.filter(s=>!search||s.name?.toLowerCase().includes(search.toLowerCase())||s.contact?.toLowerCase().includes(search.toLowerCase()));
+
+  return (
+    <div className="content">
+      <div className="stats-grid" style={{gridTemplateColumns:'repeat(2,1fr)'}}>
+        <div className="stat-card">
+          <div className="stat-label">Всего поставщиков</div>
+          <div className="stat-value stat-blue">{suppliers.length}</div>
+        </div>
+        <div className="stat-card">
+          <div className="stat-label">С контактами</div>
+          <div className="stat-value stat-green">{suppliers.filter(s=>s.contact).length}</div>
+        </div>
+      </div>
+
+      <div className="card">
+        <div className="card-header">
+          <div className="card-title">Поставщики</div>
+          <div style={{display:'flex',gap:10,alignItems:'center'}}>
+            <div className="search-bar">
+              <span className="search-icon">⌕</span>
+              <input value={search} onChange={e=>setSearch(e.target.value)} placeholder="Поиск..."/>
+            </div>
+            <button className="btn btn-accent" onClick={()=>setModal({})}>+ Добавить</button>
+          </div>
+        </div>
+        <div className="card-body">
+          <table>
+            <thead>
+              <tr><th>ID</th><th>Название</th><th>Контакт</th><th></th></tr>
+            </thead>
+            <tbody>
+              {loading && <tr className="loading-row"><td colSpan="4"><span className="dot-anim">Загрузка</span></td></tr>}
+              {!loading && filtered.length===0 && (
+                <tr><td colSpan="4">
+                  <div className="empty-state">
+                    <div className="empty-icon">🏭</div>
+                    <div className="empty-title">Поставщики не добавлены</div>
+                  </div>
+                </td></tr>
+              )}
+              {!loading && filtered.map(s=>(
+                <tr key={s.id}>
+                  <td><span className="id-cell">#{s.id}</span></td>
+                  <td><strong style={{fontSize:14}}>{s.name}</strong></td>
+                  <td>
+                    {s.contact
+                      ? <span style={{color:'var(--blue)',fontSize:13}}>{s.contact}</span>
+                      : <span style={{color:'var(--text3)',fontSize:13}}>—</span>}
+                  </td>
+                  <td>
+                    <div className="action-row">
+                      <button className="icon-btn" onClick={()=>setModal(s)}>✎</button>
+                      <button className="icon-btn danger" onClick={()=>del(s.id)}>✕</button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      {modal!==null && (
+        <SupplierModal
+          supplier={modal.id?modal:null}
+          onSave={()=>{ setModal(null); load(); toast({type:'success',msg:'Сохранено'}) }}
+          onClose={()=>setModal(null)}
+        />
+      )}
+    </div>
+  );
+}
+
+/* ─────────── Categories page ─────────── */
+function Categories({toast}){
+  const [categories,setCategories]=useState([]);
+  const [loading,setLoading]=useState(true);
+  const [modal,setModal]=useState(null);
+
+  const load = useCallback(async()=>{
+    setLoading(true);
+    try{ const d=await api('/category'); setCategories(Array.isArray(d)?d:d.data||[]); }
+    catch(e){ toast({type:'error',msg:e.message}) }
+    finally{ setLoading(false) }
+  },[]);
+
+  useEffect(()=>{ load() },[]);
+
+  async function del(id){
+    if(!confirm('Удалить категорию?')) return;
+    try{ await api(`/category/${id}`,{method:'DELETE'}); toast({type:'success',msg:'Категория удалена'}); load(); }
+    catch(e){ toast({type:'error',msg:e.message}) }
+  }
+
+  const colors = ['stat-accent','stat-blue','stat-green','stat-amber'];
+
+  return (
+    <div className="content">
+      <div className="card">
+        <div className="card-header">
+          <div className="card-title">Категории</div>
+          <button className="btn btn-accent" onClick={()=>setModal({})}>+ Добавить</button>
+        </div>
+        <div className="card-body">
+          {loading && <div style={{padding:'40px',textAlign:'center',color:'var(--text3)',fontFamily:'var(--font-mono)',fontSize:12}}><span className="dot-anim">Загрузка</span></div>}
+          {!loading && categories.length===0 && (
+            <div className="empty-state">
+              <div className="empty-icon">🗂️</div>
+              <div className="empty-title">Категории не добавлены</div>
+            </div>
+          )}
+          {!loading && categories.length>0 && (
+            <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(200px,1fr))',gap:16,padding:20}}>
+              {categories.map((c,i)=>(
+                <div key={c.id} style={{background:'var(--surface2)',border:'1px solid var(--border)',borderRadius:'var(--radius-lg)',padding:'20px 18px',display:'flex',flexDirection:'column',gap:8}}>
+                  <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start'}}>
+                    <div>
+                      <div style={{fontFamily:'var(--font-mono)',fontSize:10,color:'var(--text3)',marginBottom:4}}>#CAT-{c.id}</div>
+                      <div style={{fontFamily:'var(--font-display)',fontWeight:700,fontSize:16}}>{c.name}</div>
+                    </div>
+                    <div className="action-row">
+                      <button className="icon-btn" onClick={()=>setModal(c)}>✎</button>
+                      <button className="icon-btn danger" onClick={()=>del(c.id)}>✕</button>
+                    </div>
+                  </div>
+                  <div style={{height:3,borderRadius:99,background:'var(--border2)',marginTop:4}}>
+                    <div style={{height:'100%',borderRadius:99,width:'60%',background:i%2===0?'var(--accent)':'var(--blue)',opacity:0.7}}/>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+
+      {modal!==null && (
+        <CategoryModal
+          category={modal.id?modal:null}
+          onSave={()=>{ setModal(null); load(); toast({type:'success',msg:'Сохранено'}) }}
+          onClose={()=>setModal(null)}
+        />
+      )}
+    </div>
+  );
+}
+
+/* ─────────── App ─────────── */
+function App(){
+  const [authed, setAuthed] = useState(!!getToken());
+  const [page,setPage]=useState('products');
+  const [toast,setToast]=useState(null);
+  const email = localStorage.getItem('wh_email')||'admin';
+  const initials = email.slice(0,2).toUpperCase();
+
+  function logout(){ clearToken(); setAuthed(false); }
+
+  if(!authed) return (
+    <>
+      <Auth onLogin={()=>setAuthed(true)}/>
+      <Toast toast={toast} setToast={setToast}/>
+    </>
+  );
+
+  const nav = [
+    {id:'products', icon:'📦', label:'Товары'},
+    {id:'suppliers', icon:'🏭', label:'Поставщики'},
+    {id:'categories', icon:'🗂️', label:'Категории'},
+  ];
+
+  const titles = {products:'Товары',suppliers:'Поставщики',categories:'Категории'};
+
+  return (
+    <>
+      <div className="sidebar">
+        <div className="sidebar-logo">
+          <div className="logo-mark">WARE·HOUSE</div>
+          <div className="logo-sub">// управление складом</div>
+        </div>
+        <div className="nav-section">Навигация</div>
+        {nav.map(n=>(
+          <div key={n.id} className={`nav-item${page===n.id?' active':''}`} onClick={()=>setPage(n.id)}>
+            <span className="nav-icon">{n.icon}</span>
+            {n.label}
+          </div>
+        ))}
+        <div className="sidebar-footer">
+          <div className="user-pill">
+            <div className="user-avatar">{initials}</div>
+            <div className="user-info" style={{flex:1,minWidth:0}}>
+              <div className="user-email" style={{overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{email}</div>
+              <div className="user-role">jwt · активен</div>
+            </div>
+            <button className="icon-btn" title="Выйти" onClick={logout} style={{flexShrink:0,fontSize:12}}>↩</button>
+          </div>
+        </div>
+      </div>
+      <div className="main">
+        <div className="topbar">
+          <div className="page-title">{titles[page]}</div>
+          <div className="topbar-right">
+            <div style={{fontFamily:'var(--font-mono)',fontSize:11,color:'var(--text3)'}}>
+              api: localhost:8000
+            </div>
+            <div className="badge badge-green">● online</div>
+          </div>
+        </div>
+        {page==='products' && <Products toast={setToast}/>}
+        {page==='suppliers' && <Suppliers toast={setToast}/>}
+        {page==='categories' && <Categories toast={setToast}/>}
+      </div>
+      <Toast toast={toast} setToast={setToast}/>
+    </>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
+</script>
+</body>
+</html>
