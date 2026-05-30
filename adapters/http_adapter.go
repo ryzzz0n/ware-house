@@ -204,10 +204,22 @@ func (h *httpProductHandler) DeleteCategoryByIDFiber(c *fiber.Ctx) error {
 
 func AutoMigrate(db *gorm.DB) {
 	db.AutoMigrate(
-		&database.Product{},
-		&database.Category{},
-		&database.Supplier{},
-		&database.ProductCategory{},
 		&database.User{},
+		&database.Supplier{},
+		&database.Category{},
+		&database.Product{},
+		&database.ProductCategory{},
+		&database.Zone{},
+		&database.Cell{},
+		&database.Stock{},
+		&database.Receipt{},
+		&database.ReceiptItem{},
+		&database.Shipment{},
+		&database.ShipmentItem{},
+		&database.Movement{},
+		&database.Inventory{},
+		&database.InventoryItem{},
+		&database.ProcessingOrder{},
+		&database.ProcessingItem{},
 	)
 }

@@ -34,7 +34,7 @@ func (r *gormUserRepository) CreateUser(user *database.User) error {
 	// Присваиваем захешированный пароль пользователю
 	user.Password = string(hashedPassword)
 	// Вызываем метод Create GORM — создаём пользователя в БД
-	if result := r.db.Create(user); result != nil {
+	if result := r.db.Create(user); result.Error != nil {
 		// Если была ошибка — возвращаем её
 		return result.Error
 	}
