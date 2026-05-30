@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>WareHouse — Максим Булюкин</title>
+<title>WareHouse</title>
 <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
 <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
 <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
@@ -184,14 +184,29 @@ function getToken(){ return localStorage.getItem("wh_token") }
 function setToken(t){ localStorage.setItem("wh_token",t) }
 function clearToken(){ localStorage.removeItem("wh_token"); localStorage.removeItem("wh_email") }
 
+
+function norm(item){
+  if(!item) return item;
+  if(Array.isArray(item)) return item.map(norm);
+  if(typeof item !== "object") return item;
+  const out = {};
+  for(const k in item){
+    const lk = k === "ID" ? "id" : k.charAt(0).toLowerCase()+k.slice(1);
+    out[lk] = (item[k] && typeof item[k] === "object") ? norm(item[k]) : item[k];
+  }
+  return out;
+}
 async function api(path, opts={}){
   const token = getToken();
   const headers = { "Content-Type":"application/json", ...(token?{Authorization:"Bearer "+token}:{}) };
   const res = await fetch(BASE+path, { headers, ...opts });
   const body = await res.json().catch(()=>({}));
   if(!res.ok) throw new Error(body.message || body.error || "HTTP "+res.status);
+  if(Array.isArray(body)) return body.map(norm);
+  if(body && typeof body === "object") return norm(body);
   return body;
 }
+
 
 const I = {
   wh:      ()=><svg viewBox="0 0 24 24" fill="none" stroke="#07080a" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>,
