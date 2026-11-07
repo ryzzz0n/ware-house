@@ -25,15 +25,39 @@ func (h *httpUserHandler) RegisterAuthRoutes(app *fiber.App) {
 	app.Post("/login", h.LoginUserFiber)
 }
 
+// Все маршруты, кроме /register и /login, требуют JWT.
 func RegisterAuthMiddleware(app *fiber.App) {
-	app.Use("/product", AuthRequired)
-	app.Use("/category", AuthRequired)
-	app.Use("/supplier", AuthRequired)
+	protected := []string{
+		"/product", "/category", "/supplier",
+		"/zone", "/cell", "/stock",
+		"/receipt", "/shipment", "/movement",
+		"/inventory", "/processing",
+	}
+	for _, prefix := range protected {
+		app.Use(prefix, AuthRequired)
+	}
+}
+
+// credentials — тело запроса для /register и /login.
+// Отдельная структура нужна, потому что у database.User поле Password
+// помечено `json:"-"` (чтобы хеш не попадал в ответы API),
+// и при парсинге напрямую в User пароль терялся.
+type credentials struct {
+	Email    string `json:"email"`
+	Password string `json:"password"`
+}
+
+func parseCredentials(c *fiber.Ctx) (*database.User, error) {
+	var req credentials
+	if err := c.BodyParser(&req); err != nil {
+		return nil, err
+	}
+	return &database.User{Email: req.Email, Password: req.Password}, nil
 }
 
 func (h *httpUserHandler) CreateUserFiber(c *fiber.Ctx) error {
-	user := new(database.User)
-	if err := c.BodyParser(user); err != nil {
+	user, err := parseCredentials(c)
+	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid request"})
 	}
 	if user.Email == "" || user.Password == "" {
@@ -46,8 +70,8 @@ func (h *httpUserHandler) CreateUserFiber(c *fiber.Ctx) error {
 }
 
 func (h *httpUserHandler) LoginUserFiber(c *fiber.Ctx) error {
-	user := new(database.User)
-	if err := c.BodyParser(user); err != nil {
+	user, err := parseCredentials(c)
+	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid request"})
 	}
 	token, err := h.service.LoginUser(user)
